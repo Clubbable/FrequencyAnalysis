@@ -15,6 +15,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  *
@@ -201,6 +203,63 @@ public class FrequencyAnalysis {
         
         return QuadGramCount;
     }
+    
+    public static String generateRandom25LetterString()
+    {
+        String alphabets = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        String rand = "";
+        
+        while(rand.length() < 25)
+        {
+            int randInt = ThreadLocalRandom.current().nextInt(0, 26 - rand.length());
+            rand = rand + alphabets.charAt(randInt);
+            alphabets = alphabets.replace(String.valueOf(alphabets.charAt(randInt)), "");
+        }
+        
+        return rand;
+    }
+    
+    public static String decipherPlayFairWithKey( String key, String cipherText)
+    {
+        String plainText = "";
+        char[][] keyArray = new char[5][5];
+        Map keyMap = new HashMap<Character, Pair>();
+        int yCoord = 0;
+        
+        for(int i = 0; i < key.length(); ++i)
+        {
+            if( i % 5 == 0 && i != 0) 
+            {
+                yCoord++;
+            }
+            keyArray[i - yCoord * 5][yCoord] = key.charAt(i);
+        }
+        
+        for(int x = 0; x < 5; x++)
+        {
+            for(int y = 0; y < 5; y++)
+            {
+                keyMap.put(keyArray[x][y], new Pair(x,y));
+            }
+        }
+        
+        for(int i = 0; i < cipherText.length(); i = i+2 )
+        {
+            if( i+1 < cipherText.length())
+            {
+                Pair firstLetterLoc = (Pair) keyMap.get(cipherText.charAt(i));
+                Pair secondLetterLoc = (Pair) keyMap.get(cipherText.charAt(i+1));
+                
+                // Check rectangle
+                if(firstLetterLoc.x != secondLetterLoc.x && firstLetterLoc.y != secondLetterLoc.y)
+                {
+                    plainText = plainText + keyArray[secondLetterLoc.x][firstLetterLoc.y] + keyArray[firstLetterLoc.x][secondLetterLoc.y];
+                }
+            }
+        }
+        
+        return plainText;
+    }
    
     public static void main(String[] args) {
         
@@ -244,8 +303,20 @@ public class FrequencyAnalysis {
         if(warAndPeaceString != null)
         {
             quadGramData = (HashMap) getQuadgramDataFromWarAndPeace(warAndPeaceString);
-            System.out.println(quadGramData.get("ATTA"));
-            System.out.println(warAndPeaceString);
+            
+            // TESTS
+            
+            //System.out.println(quadGramData.get("TION"));
+            //System.out.println(warAndPeaceString);
+            /*for(int i = 0; i < 100; i++)
+            {
+                String testRand = generateRandom25LetterString();
+                System.out.println(testRand);
+            }*/
+            
+            String testRand = generateRandom25LetterString();
+            String plainText = decipherPlayFairWithKey(testRand, "AZCG");
+            System.out.println(plainText);
         }
     }
 }
