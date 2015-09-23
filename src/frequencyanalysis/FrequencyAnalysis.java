@@ -5,6 +5,7 @@
  */
 package frequencyanalysis;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -13,39 +14,46 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  *
  * @author Martin
  */
 public class FrequencyAnalysis {
-
-    // SortByValue is not written by hand, but found off internet
-    // Source: http://stackoverflow.com/questions/109383/how-to-sort-a-mapkey-value-on-the-values-in-java
     
-    public static Map sortByValue(Map map) 
+    public static List<Item> sortByValue(Map map) 
     {
-        List list = new LinkedList(map.entrySet());
+        List sortedList = new ArrayList<Item>();
         
-        Collections.sort(list, new Comparator() {
-             public int compare(Object o1, Object o2) {
-                 // -1 allows us to order from big to small
-                  return -1 * ((Comparable) ((Map.Entry) (o1)).getValue())
-                 .compareTo(((Map.Entry) (o2)).getValue());
-             }
-        });
-
-       Map result = new LinkedHashMap();
-       
-       for (Iterator it = list.iterator(); it.hasNext();) 
-       {
-           Map.Entry entry = (Map.Entry)it.next();
-           result.put(entry.getKey(), entry.getValue());
-       }
-       return result;
+        while(!map.isEmpty())
+        {
+            int Highest = 0;
+            Object HighestKey = null;
+            Iterator it = map.entrySet().iterator();
+            
+            while(it.hasNext())
+            {
+                Entry entry = (Entry) it.next();
+                
+                if((Integer)entry.getValue() > Highest)
+                {
+                    Highest = (Integer)entry.getValue();
+                    HighestKey = entry.getKey();
+                }
+            }
+            
+            if(HighestKey != null)
+            {
+                sortedList.add(new Item(HighestKey, Highest));
+                map.remove(HighestKey);
+            }
+        }
+        
+        return sortedList;
     } 
     
-    public static HashMap findAlphabetFreq(String input)
+    public static List<Item> findAlphabetFreq(String input)
     {
         HashMap alphabetCount = new HashMap<Character, Integer>();
         
@@ -63,10 +71,10 @@ public class FrequencyAnalysis {
             }
         }
         
-        return (HashMap) sortByValue(alphabetCount);
+        return sortByValue(alphabetCount);
     }
     
-    public static HashMap findDigraphFreq(String input)
+    public static List<Item> findDigraphFreq(String input)
     {
         HashMap digraphCount = new HashMap<String, Integer>();
         
@@ -89,11 +97,11 @@ public class FrequencyAnalysis {
             }
         }
 
-        return (HashMap) sortByValue(digraphCount);
+        return sortByValue(digraphCount);
         
     }
     
-    public static HashMap findRepeatedFreq(String input)
+    public static List<Item> findRepeatedFreq(String input)
     {
         HashMap repeatedCount = new HashMap<String, Integer>();
         
@@ -116,7 +124,7 @@ public class FrequencyAnalysis {
             }
         }
         
-        return (HashMap) sortByValue(repeatedCount);
+        return sortByValue(repeatedCount);
     }
     
     /** 
@@ -126,10 +134,30 @@ public class FrequencyAnalysis {
         // TODO code application logic here
         String testString = "HMAEQKQDQKMKZELLXMRZHGAAHQTGTLEJKMRZCJVSXYLELRMEMJTQMRZIGEBJQTTAGREBQGKBMRZAJQYMRELZMRSQEBQAWKGRYTQKGRYMWKQEECZMRSQSLHHMJVEKMEBQKDGYLKLVAZLEJVEJGTJLBMZRLEPGRGABQZZLEAQGOGRYMBLKRPKLHMCLVRYAEQKRQMKJCSLHHMBQJTQIEBKQQTLVZBLLEAZLEEBQRLGAQAVJAGZQZZLEGABMTTRLEXQQWCLVTLRYSLHHMBQSKGQZZLESBQQKAPKLHMTTEBQMAAQHJTCZLEGBMDQSMTTQZCLVMTTELYQEBQKPLKMWVKWLAQZLEALHQEBGRYGREBQIMCEBMEBQAMGZEBGAHMZQMRGHWKQAAGLRZLEEBQKQIMAMTHLAEAGTQRSQSLHHMMRZLRQLKEILLPEBQELLXAWKGSXQZVWEBQGKQMKA";
         
-        HashMap sortedAlphabetCount = findAlphabetFreq(testString);
-        HashMap sortedDigraphCount = findDigraphFreq(testString);
-        HashMap sortedRepeatedCount = findRepeatedFreq(testString);
+        List<Item> sortedAlphabetCount = findAlphabetFreq(testString);
+        List<Item> sortedDigraphCount = findDigraphFreq(testString);
+        List<Item> sortedRepeatedCount = findRepeatedFreq(testString);
         
-        System.out.println("Put breakpoint here, read variable values and start hacking!");
+        System.out.println("Alphabet Analysis \n");
+        
+        for(Item i : sortedAlphabetCount)
+        {
+            System.out.println(i.itemKey + "            " + i.itemValue);
+        }
+        
+        System.out.println("Digraph Analysis \n");
+        
+        for(Item i : sortedDigraphCount)
+        {
+            System.out.println(i.itemKey + "            " + i.itemValue);
+        }
+        
+        System.out.println("Repeated Letters Analysis \n");
+        
+        for(Item i : sortedRepeatedCount)
+        {
+            System.out.println(i.itemKey + "            " + i.itemValue);
+        }
+        
     }
 }
