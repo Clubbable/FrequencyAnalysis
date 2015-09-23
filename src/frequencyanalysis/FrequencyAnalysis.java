@@ -6,12 +6,8 @@
 package frequencyanalysis;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -127,6 +123,18 @@ public class FrequencyAnalysis {
         return sortByValue(repeatedCount);
     }
     
+    public static float findIOC(List<Item> list, int textLength)
+    {
+        float ioc = 0.0f;
+        
+        for( Item i : list)
+        {
+            ioc = ioc + i.itemValue * (i.itemValue - 1);
+        }
+        
+        return ioc / (textLength * (textLength - 1));
+    }
+    
     /** 
      * @param args the command line arguments
      */
@@ -138,26 +146,28 @@ public class FrequencyAnalysis {
         List<Item> sortedDigraphCount = findDigraphFreq(testString);
         List<Item> sortedRepeatedCount = findRepeatedFreq(testString);
         
-        System.out.println("Alphabet Analysis \n");
+        System.out.println("\nAlphabet Analysis \n");
         
         for(Item i : sortedAlphabetCount)
         {
             System.out.println(i.itemKey + "            " + i.itemValue);
         }
         
-        System.out.println("Digraph Analysis \n");
+        System.out.println("\nDigraph Analysis \n");
         
         for(Item i : sortedDigraphCount)
         {
             System.out.println(i.itemKey + "            " + i.itemValue);
         }
         
-        System.out.println("Repeated Letters Analysis \n");
+        System.out.println("\nRepeated Letters Analysis \n");
         
         for(Item i : sortedRepeatedCount)
         {
             System.out.println(i.itemKey + "            " + i.itemValue);
         }
         
+        System.out.println("\nIndex of Coincidence \n");
+        System.out.println(findIOC(sortedAlphabetCount, testString.length()));
     }
 }
