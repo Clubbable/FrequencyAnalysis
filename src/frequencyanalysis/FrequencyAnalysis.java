@@ -247,13 +247,52 @@ public class FrequencyAnalysis {
         {
             if( i+1 < cipherText.length())
             {
-                Pair firstLetterLoc = (Pair) keyMap.get(cipherText.charAt(i));
-                Pair secondLetterLoc = (Pair) keyMap.get(cipherText.charAt(i+1));
+                char firstLetter = cipherText.charAt(i);
+                char secondLetter = cipherText.charAt(i+1);
+                
+                Pair firstLetterLoc = (Pair) keyMap.get(firstLetter);
+                Pair secondLetterLoc = (Pair) keyMap.get(secondLetter);
+                
+                // This null check ensure that the missing letter is taken care of. If J is missing, use K or Q, if D is, use E or B
+                if(firstLetterLoc == null)
+                {
+                    firstLetter++;
+                    firstLetterLoc = (Pair) keyMap.get(firstLetter);
+                    
+                    if(firstLetterLoc == null)
+                    {
+                        firstLetter = (char) (firstLetter - 2);
+                        firstLetterLoc = (Pair) keyMap.get(firstLetter);
+                    }
+                }
+                if(secondLetterLoc == null)
+                {
+                    secondLetter++;
+                    secondLetterLoc = (Pair) keyMap.get(secondLetter);
+                    
+                    if(secondLetterLoc == null)
+                    {
+                        secondLetter = (char) (secondLetter - 2);
+                        secondLetterLoc = (Pair) keyMap.get(secondLetter);
+                    }
+                }
                 
                 // Check rectangle
                 if(firstLetterLoc.x != secondLetterLoc.x && firstLetterLoc.y != secondLetterLoc.y)
                 {
                     plainText = plainText + keyArray[secondLetterLoc.x][firstLetterLoc.y] + keyArray[firstLetterLoc.x][secondLetterLoc.y];
+                }
+                // Check right shift
+                else if(firstLetterLoc.y == secondLetterLoc.y)
+                {
+                    plainText = plainText + keyArray[firstLetterLoc.x - 1 < 0 ? 4 : firstLetterLoc.x - 1][firstLetterLoc.y] 
+                                          + keyArray[secondLetterLoc.x - 1 < 0 ? 4 : secondLetterLoc.x - 1][secondLetterLoc.y];
+                }
+                // Check down shift
+                else if(firstLetterLoc.x == secondLetterLoc.x)
+                {
+                    plainText = plainText + keyArray[firstLetterLoc.x][firstLetterLoc.y - 1 < 0 ? 4 : firstLetterLoc.y - 1] 
+                                          + keyArray[secondLetterLoc.x][secondLetterLoc.y - 1 < 0 ? 4 : secondLetterLoc.y - 1];
                 }
             }
         }
@@ -313,9 +352,7 @@ public class FrequencyAnalysis {
                 String testRand = generateRandom25LetterString();
                 System.out.println(testRand);
             }*/
-            
-            String testRand = generateRandom25LetterString();
-            String plainText = decipherPlayFairWithKey(testRand, "AZCG");
+            String plainText = decipherPlayFairWithKey("ADUGVJTXEPLWCYIMFHSOQKBNP", "ZM");
             System.out.println(plainText);
         }
     }
