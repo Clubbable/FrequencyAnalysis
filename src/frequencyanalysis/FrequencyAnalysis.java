@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.zip.CRC32;
+import org.apache.commons.lang3.RandomStringUtils;
 
 /**
  *
@@ -219,14 +221,55 @@ public class FrequencyAnalysis {
         return rand;
     }
     
-    public static String modifyString(String input)
+    public static String modifyString(String input, int maxMode)
     {
-        int randInt1 = ThreadLocalRandom.current().nextInt(0, 25);
-        int randInt2 = ThreadLocalRandom.current().nextInt(0, 25);
+        int randMode = ThreadLocalRandom.current().nextInt(0, 3);
+        String ans = "";
         
-        return input.replace(String.valueOf(input.charAt(randInt1)), "*")
-                    .replace(String.valueOf(input.charAt(randInt2)), String.valueOf(input.charAt(randInt1)))
-                    .replace("*", String.valueOf(input.charAt(randInt2)));
+        if(randMode == 0)
+        {
+            // Replace any random 2 letters
+            int randInt1 = ThreadLocalRandom.current().nextInt(0, 25);
+            int randInt2 = ThreadLocalRandom.current().nextInt(0, 25);
+
+            ans = input.replace(String.valueOf(input.charAt(randInt1)), "*")
+                        .replace(String.valueOf(input.charAt(randInt2)), String.valueOf(input.charAt(randInt1)))
+                        .replace("*", String.valueOf(input.charAt(randInt2)));
+        }
+        else if(randMode == 1)
+        {
+            // Swap any 2 random rows
+            int randInt3 = ThreadLocalRandom.current().nextInt(0, 5);
+            int randInt4 = ThreadLocalRandom.current().nextInt(0, 5);
+
+            ans = input.replace(input.substring(randInt3 * 5, randInt3 * 5 + 5), "*****")
+                       .replace(input.substring(randInt4 * 5, randInt4 * 5 + 5), input.substring(randInt3 * 5, randInt3 * 5 + 5))
+                       .replace("*****", input.substring(randInt4 * 5, randInt4 * 5 + 5));
+        }
+        else if(randMode == 2)
+        {
+            //Swap any 2 random columns
+            int randInt5 = ThreadLocalRandom.current().nextInt(0, 5);
+            int randInt6 = ThreadLocalRandom.current().nextInt(0, 5);
+
+            ans = input.replace(String.valueOf(input.charAt(randInt5)), "*")
+                        .replace(String.valueOf(input.charAt(randInt6)), String.valueOf(input.charAt(randInt5)))
+                        .replace("*", String.valueOf(input.charAt(randInt6)))
+                        .replace(String.valueOf(input.charAt(randInt5 + 5)), "*")
+                        .replace(String.valueOf(input.charAt(randInt6 + 5)), String.valueOf(input.charAt(randInt5 + 5)))
+                        .replace("*", String.valueOf(input.charAt(randInt6 + 5)))
+                        .replace(String.valueOf(input.charAt(randInt5 + 10)), "*")
+                        .replace(String.valueOf(input.charAt(randInt6 + 10)), String.valueOf(input.charAt(randInt5 + 10)))
+                        .replace("*", String.valueOf(input.charAt(randInt6 + 10)))
+                        .replace(String.valueOf(input.charAt(randInt5 + 15)), "*")
+                        .replace(String.valueOf(input.charAt(randInt6 + 15)), String.valueOf(input.charAt(randInt5 + 15)))
+                        .replace("*", String.valueOf(input.charAt(randInt6 + 15)))
+                        .replace(String.valueOf(input.charAt(randInt5 + 20)), "*")
+                        .replace(String.valueOf(input.charAt(randInt6 + 20)), String.valueOf(input.charAt(randInt5 + 20)))
+                        .replace("*", String.valueOf(input.charAt(randInt6 + 20)));
+        }
+        
+        return ans;
     }
     
     public static String decipherPlayFairWithKey( String key, String cipherText)
@@ -346,31 +389,41 @@ public class FrequencyAnalysis {
         HashMap quadGramData = (HashMap) getQuadgramDataFromWarAndPeace(warAndPeaceString);
         
         String parentKey = generateRandom25LetterString();
+        //String parentKey = "TUVJDCISYLOEMFNPWKQRGHAXB";
+        
         float parentFitness = findFitnessOfString(quadGramData, decipherPlayFairWithKey(parentKey, cipherText));
         
-        for(int temp = 50; temp >= 0; temp-- )
+        outerloop : 
         {
-            for(int count = 50000; count > 0; count-- )
+            for(int temp = 180; temp >= 0; temp-- )
             {
-                String childKey = modifyString(parentKey);
-                float childFitness = findFitnessOfString(quadGramData, decipherPlayFairWithKey(childKey, cipherText));
-                System.out.println(temp + " - " + count + ": " + parentFitness + "     " + childFitness);
-                float dF = childFitness - parentFitness;
-                
-                if(dF > 0)
+                for(int count = 40000; count > 0; count-- )
                 {
-                    parentKey = childKey;
-                    parentFitness = childFitness;
-                }
-                else
-                {
-                     float randFloat = ThreadLocalRandom.current().nextFloat();
-                     
-                     if(randFloat < Math.exp(dF/temp))
-                     {
-                         parentKey = childKey;
-                         parentFitness = childFitness;
-                     }
+                    String childKey = modifyString(parentKey, 3);
+                    //String childKey = modifyString(parentKey, 1);
+                    float childFitness = findFitnessOfString(quadGramData, decipherPlayFairWithKey(childKey, cipherText));
+                    float dF = childFitness - parentFitness;
+
+                    System.out.println(temp + " - " + count + ": " + parentFitness + "     " + childFitness + "       " + dF);
+
+                    if(dF > 0)
+                    {
+                        parentKey = childKey;
+                        parentFitness = childFitness;
+                    }
+                    else
+                    {
+                         float randFloat = ThreadLocalRandom.current().nextFloat();
+
+                         if(randFloat < Math.exp(dF/(temp)))
+                         {
+                             parentKey = childKey;
+                             parentFitness = childFitness;
+                         }
+                    }
+
+                    //if(parentFitness >= -10000)
+                       // break outerloop;
                 }
             }
         }
@@ -417,6 +470,7 @@ public class FrequencyAnalysis {
         String number2String = "IFXATNVCHSLBEODEIOPDHSRNLZPCSEMHOLEFKVEICVHUGVCFIUMHPLEFKVCFVWOEPIEFKVUGGVBSCDUWIMNCVLCPWLMISGFMNQEFHNNUINTNUCTVFBOEHUGVUGFIWNCSWMLEUGMEWLHCMBSDNWYSEOLVPCHDUCPERLNWHULZVEDNNUNPOUGETHGUSYGEDILBMHTUUWKMEFOUUEOBLPGSWMZBTNRECVHSKLTNCGPNGXDNLSVICOAXBNEWOPFAKVOEKEVEMVYCFHOWOPFAKVLMMHWSOBENOZNPOHPNHUSYAXLWOPFAKVMVLUPNFBOMKDETYCLZPCBSCDUWMVFMOPFAKVHWIAETNLHOZGCPHNTLEFKVHUSYWOWNUBNWESEONUPCCUPEDILRUTPCFGMTNWYCFHOWCPFEQBPNRUPCOEOPFAKVXHWNNUPNRLPCXGWDVGCDWLRCMFDWUNBDCZUWDBLUOHPNEFMKPCUWKNCHGUWTVGHLCPNZVKWOPNODUWHWZBULOBTNUCYBCBOUUGNICHGUTNVGRLUWICSIWMTUUWUNIDESMBCPPNOLMFNPMHIANWESEONIMNZGUGNWFGEFTNUOCHGUTNZGUGWHNUULOBUGWNMEICPOPMODUWNEYBCNHEOBXMUOBRFGEONEDEUBBKQLOPFAKVPNOLEFKVNQNUBMTBMEPBMIVGRLLETPVUYSUNUGOHWNGVHUCUMFBKWZFHWEODUWNPIGBKTLEFKVHKHSUCOBUGMHQBWLSVCNOZUWHWZBULOBHTMIVCTNUGBKQLAXTUVAMOBSBKHOTNIMENGPCLEISIOWPCCEMBRLKHLMEPUGNUETDNMEMXWNUBMHUNVNTHBCNHFCNQEFUGNIPOBSUSYBSBHOOPFAKVPCUOQLCVTNCOGVIGGPINOPFAKVNQEFHUEFNQNUAXVLCPINEBHSKLVILEHXIVFAFEELOBIGBKNVPCUGOWSBERVMCPLEDPNTTIWUBKQLVMOPVILEGXBRSXRLDPVIZGCPUGOHWNGVEDNANWENHWVMINLQNIGVSUMICPSGFEZESBHOUENVPCBSYNETPNOZUWEKNWOIIDCOUEOBIMGVLETGSBMLOPFAKVCMUGGVUGFIOPDIUBNIKCGEKWMERCOUPCUWWLHAVCMHVCTNVGGECVENHUCUNWNGNUKHCUNWIABVBKWLUMVBEBETWNBKCSNWOPFAKVBSEOHPCUAXTPNLMOSHSPOUNUGXRLOPFAKVBMVBYBCNOZUWIMHEVXBLIKNWOIDWWNODCLYSZGUCOBVMGEPDULCVBMIOHKXSDEUNKBDPFHNUPCAXQBQLOPDIVLFHMHDNIWAXUFENWCWOMKMPWEYAIVLEXOPNOVUWCKPCTNDGWULEUBBKQLOPFAKVUGFHMODPBMIOCPUGMFBKWZFHNWMUMHINLBEPMVRLPNKIENNQXHSCOHNCUNOLAXLWYAIMCPOMCUUWKLLUMEMXCNOBWTPWINSGPWOUTNZGUGMITWGPPDLETGNCMIHWWNMOUPLENUHEUGHUCUMHRLTPNLNYEPNWLVPCNQNUBMTBMEPBWUBVMXCVMONUBMMONPFEVIHDOLGEOXNCUNRDBSCNEOCMUMPDUWFHGSCGECODHUNWNHSCSBRLNYWIPKETNLIANPDCLXOIEFWUVIGXRLBMURYENUPCETVCLUOIEFKVHDZGUOQNCSMIBMLDFHMIHWWNGEUMWLOBSBUYCLMTNWUGOHKBYAMVRLUWTBNWEPTNUGBKQLKHLKGVUWWDOLEFNEPDXGINTNZGUGMFTHBCNHFCHUMCMHQGWOBKBMIOUWKHMVQZNMOCLEHPVMYCCHGUCLMXZGUOPDAXEBSEBMUBSYLBMILKNGMINMCDGEVGRLUCHAUCODUWEZYBCBSBWNENVMVEFMKLVBLZPCHUMOCHOUKVQBWLNUOPFAKVMVLUNQNUOPFAKVUVHBHCOBGVUGOINCSBPNEXSYEPRBNGMIOPFAKVEHEODGNHPCUWWLOBHEUGBMCFOZUELMEOIMMLNUPCCFTIBMBSIRMHPKAXZCETCSWMOPFAKVBMULYBCRVUXMDINDNTLXLETLDWIMEOEVEVODSCCUMVYBCNUMBLPCIAWHVMODCPNGBVUGSYFEBRLETOEFKVOPMLLUNWLETOEFKVMVLUHONPHOTNCOWLNUXGCUXGETCGNWILOEDGWEOBUWWNOPFAKVHDUPGEKHODIASETNCPAGCSFMLIEFKVDBGSFIETKLNIUMYIEFKVUWWNUGFIOPFMOPFAKVCNMPTNDGWLHADCLINCNPNUEYHTWNIKNWMHQGWOBKLETOEFKVEONHCFOMETCPNOEPUWWNGVUGNUSYVGODGNDEVBQLENUGFIBKZBTNUPCUUEOFLEVUMIGKPNIOYAYSEOAXZNNPFMTLEFKVHUSIAGOHBMCPLMVAWEVCKHIZGCBWETHAUGOHBKUNODEPBKTUUWKVPRIWNUPCFHPCSINYEPNWMVRLHNHECOUWLDLWVLNYVUUOWNTNODUWHECOUWIAGVYIEFKVHUSCOWWNISETCAMFCACSZGUOWNZNPNFAKVFLENUGWHYUBKVLLPVSGVMVUIFENMGYCUNUIGGVUOPBWNRIETUNKBRLCNVTNWOPFAKVLBEPELOBUGMIETRLENUGNHFHMIVMUGOIPNRUGKWPMGIGNUUGOUMOZG";
         String number2Answer = "";
         
+        /*
         try{
             number2Answer = runPlayFairDecryptor(number2String);
         }
@@ -426,6 +480,7 @@ public class FrequencyAnalysis {
         }
         
         System.out.println(number2Answer);
+        */
         
         // TESTS
         /*
@@ -454,6 +509,37 @@ public class FrequencyAnalysis {
             //System.out.println(fitness);
         }
         */
+        
+        //Question 3
+        String inputX = "";
+        String inputY = "";
+        
+        outerloop :
+        {
+            while(true)
+            {
+                int randStringLength = ThreadLocalRandom.current().nextInt(1, 15);
+                inputX = RandomStringUtils.randomAlphanumeric(randStringLength);
+
+                randStringLength = ThreadLocalRandom.current().nextInt(1, 15);
+                inputY = RandomStringUtils.randomAlphanumeric(randStringLength);
+                
+                System.out.println(inputX + "       " + inputY);
+
+                CRC32 crc = new CRC32();
+                crc.update(inputX.getBytes());
+                long inputXCRC = crc.getValue();
+
+                CRC32 crc2 = new CRC32();
+                crc2.update(inputY.getBytes());
+                long inputYCRC = crc2.getValue();
+                
+                if(inputXCRC == inputYCRC && !inputX.equalsIgnoreCase(inputY))
+                    break outerloop;
+            }
+        }
+        
+        System.out.println(inputX + "       " + inputY);
         
     }
 }
