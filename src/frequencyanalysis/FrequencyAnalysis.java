@@ -211,7 +211,7 @@ public class FrequencyAnalysis {
         
         while(rand.length() < 25)
         {
-            int randInt = ThreadLocalRandom.current().nextInt(0, 26 - rand.length());
+            int randInt = ThreadLocalRandom.current().nextInt(0, 25 - rand.length());
             rand = rand + alphabets.charAt(randInt);
             alphabets = alphabets.replace(String.valueOf(alphabets.charAt(randInt)), "");
         }
@@ -221,8 +221,8 @@ public class FrequencyAnalysis {
     
     public static String modifyString(String input)
     {
-        int randInt1 = ThreadLocalRandom.current().nextInt(0, 26);
-        int randInt2 = ThreadLocalRandom.current().nextInt(0, 26);
+        int randInt1 = ThreadLocalRandom.current().nextInt(0, 25);
+        int randInt2 = ThreadLocalRandom.current().nextInt(0, 25);
         
         return input.replace(String.valueOf(input.charAt(randInt1)), "*")
                     .replace(String.valueOf(input.charAt(randInt2)), String.valueOf(input.charAt(randInt1)))
@@ -339,6 +339,45 @@ public class FrequencyAnalysis {
         
         return ans;
     }
+    
+    public static String runPlayFairDecryptor(String cipherText) throws Exception
+    {
+        String warAndPeaceString = getCleansedStringFromWarAndPeace();
+        HashMap quadGramData = (HashMap) getQuadgramDataFromWarAndPeace(warAndPeaceString);
+        
+        String parentKey = generateRandom25LetterString();
+        float parentFitness = findFitnessOfString(quadGramData, decipherPlayFairWithKey(parentKey, cipherText));
+        
+        for(int temp = 50; temp >= 0; temp-- )
+        {
+            for(int count = 50000; count > 0; count-- )
+            {
+                String childKey = modifyString(parentKey);
+                float childFitness = findFitnessOfString(quadGramData, decipherPlayFairWithKey(childKey, cipherText));
+                System.out.println(temp + " - " + count + ": " + parentFitness + "     " + childFitness);
+                float dF = childFitness - parentFitness;
+                
+                if(dF > 0)
+                {
+                    parentKey = childKey;
+                    parentFitness = childFitness;
+                }
+                else
+                {
+                     float randFloat = ThreadLocalRandom.current().nextFloat();
+                     
+                     if(randFloat < Math.exp(dF/temp))
+                     {
+                         parentKey = childKey;
+                         parentFitness = childFitness;
+                     }
+                }
+            }
+        }
+        
+        // Generally a fitness of more than -300 is good as an end point
+        return parentKey;
+    }
    
     public static void main(String[] args) {
         
@@ -376,6 +415,20 @@ public class FrequencyAnalysis {
         
         //Question 2 string
         String number2String = "IFXATNVCHSLBEODEIOPDHSRNLZPCSEMHOLEFKVEICVHUGVCFIUMHPLEFKVCFVWOEPIEFKVUGGVBSCDUWIMNCVLCPWLMISGFMNQEFHNNUINTNUCTVFBOEHUGVUGFIWNCSWMLEUGMEWLHCMBSDNWYSEOLVPCHDUCPERLNWHULZVEDNNUNPOUGETHGUSYGEDILBMHTUUWKMEFOUUEOBLPGSWMZBTNRECVHSKLTNCGPNGXDNLSVICOAXBNEWOPFAKVOEKEVEMVYCFHOWOPFAKVLMMHWSOBENOZNPOHPNHUSYAXLWOPFAKVMVLUPNFBOMKDETYCLZPCBSCDUWMVFMOPFAKVHWIAETNLHOZGCPHNTLEFKVHUSYWOWNUBNWESEONUPCCUPEDILRUTPCFGMTNWYCFHOWCPFEQBPNRUPCOEOPFAKVXHWNNUPNRLPCXGWDVGCDWLRCMFDWUNBDCZUWDBLUOHPNEFMKPCUWKNCHGUWTVGHLCPNZVKWOPNODUWHWZBULOBTNUCYBCBOUUGNICHGUTNVGRLUWICSIWMTUUWUNIDESMBCPPNOLMFNPMHIANWESEONIMNZGUGNWFGEFTNUOCHGUTNZGUGWHNUULOBUGWNMEICPOPMODUWNEYBCNHEOBXMUOBRFGEONEDEUBBKQLOPFAKVPNOLEFKVNQNUBMTBMEPBMIVGRLLETPVUYSUNUGOHWNGVHUCUMFBKWZFHWEODUWNPIGBKTLEFKVHKHSUCOBUGMHQBWLSVCNOZUWHWZBULOBHTMIVCTNUGBKQLAXTUVAMOBSBKHOTNIMENGPCLEISIOWPCCEMBRLKHLMEPUGNUETDNMEMXWNUBMHUNVNTHBCNHFCNQEFUGNIPOBSUSYBSBHOOPFAKVPCUOQLCVTNCOGVIGGPINOPFAKVNQEFHUEFNQNUAXVLCPINEBHSKLVILEHXIVFAFEELOBIGBKNVPCUGOWSBERVMCPLEDPNTTIWUBKQLVMOPVILEGXBRSXRLDPVIZGCPUGOHWNGVEDNANWENHWVMINLQNIGVSUMICPSGFEZESBHOUENVPCBSYNETPNOZUWEKNWOIIDCOUEOBIMGVLETGSBMLOPFAKVCMUGGVUGFIOPDIUBNIKCGEKWMERCOUPCUWWLHAVCMHVCTNVGGECVENHUCUNWNGNUKHCUNWIABVBKWLUMVBEBETWNBKCSNWOPFAKVBSEOHPCUAXTPNLMOSHSPOUNUGXRLOPFAKVBMVBYBCNOZUWIMHEVXBLIKNWOIDWWNODCLYSZGUCOBVMGEPDULCVBMIOHKXSDEUNKBDPFHNUPCAXQBQLOPDIVLFHMHDNIWAXUFENWCWOMKMPWEYAIVLEXOPNOVUWCKPCTNDGWULEUBBKQLOPFAKVUGFHMODPBMIOCPUGMFBKWZFHNWMUMHINLBEPMVRLPNKIENNQXHSCOHNCUNOLAXLWYAIMCPOMCUUWKLLUMEMXCNOBWTPWINSGPWOUTNZGUGMITWGPPDLETGNCMIHWWNMOUPLENUHEUGHUCUMHRLTPNLNYEPNWLVPCNQNUBMTBMEPBWUBVMXCVMONUBMMONPFEVIHDOLGEOXNCUNRDBSCNEOCMUMPDUWFHGSCGECODHUNWNHSCSBRLNYWIPKETNLIANPDCLXOIEFWUVIGXRLBMURYENUPCETVCLUOIEFKVHDZGUOQNCSMIBMLDFHMIHWWNGEUMWLOBSBUYCLMTNWUGOHKBYAMVRLUWTBNWEPTNUGBKQLKHLKGVUWWDOLEFNEPDXGINTNZGUGMFTHBCNHFCHUMCMHQGWOBKBMIOUWKHMVQZNMOCLEHPVMYCCHGUCLMXZGUOPDAXEBSEBMUBSYLBMILKNGMINMCDGEVGRLUCHAUCODUWEZYBCBSBWNENVMVEFMKLVBLZPCHUMOCHOUKVQBWLNUOPFAKVMVLUNQNUOPFAKVUVHBHCOBGVUGOINCSBPNEXSYEPRBNGMIOPFAKVEHEODGNHPCUWWLOBHEUGBMCFOZUELMEOIMMLNUPCCFTIBMBSIRMHPKAXZCETCSWMOPFAKVBMULYBCRVUXMDINDNTLXLETLDWIMEOEVEVODSCCUMVYBCNUMBLPCIAWHVMODCPNGBVUGSYFEBRLETOEFKVOPMLLUNWLETOEFKVMVLUHONPHOTNCOWLNUXGCUXGETCGNWILOEDGWEOBUWWNOPFAKVHDUPGEKHODIASETNCPAGCSFMLIEFKVDBGSFIETKLNIUMYIEFKVUWWNUGFIOPFMOPFAKVCNMPTNDGWLHADCLINCNPNUEYHTWNIKNWMHQGWOBKLETOEFKVEONHCFOMETCPNOEPUWWNGVUGNUSYVGODGNDEVBQLENUGFIBKZBTNUPCUUEOFLEVUMIGKPNIOYAYSEOAXZNNPFMTLEFKVHUSIAGOHBMCPLMVAWEVCKHIZGCBWETHAUGOHBKUNODEPBKTUUWKVPRIWNUPCFHPCSINYEPNWMVRLHNHECOUWLDLWVLNYVUUOWNTNODUWHECOUWIAGVYIEFKVHUSCOWWNISETCAMFCACSZGUOWNZNPNFAKVFLENUGWHYUBKVLLPVSGVMVUIFENMGYCUNUIGGVUOPBWNRIETUNKBRLCNVTNWOPFAKVLBEPELOBUGMIETRLENUGNHFHMIVMUGOIPNRUGKWPMGIGNUUGOUMOZG";
+        String number2Answer = "";
+        
+        try{
+            number2Answer = runPlayFairDecryptor(number2String);
+        }
+        catch(Exception e)
+        {
+            System.out.println(e.toString());
+        }
+        
+        System.out.println(number2Answer);
+        
+        // TESTS
+        /*
         String warAndPeaceString = getCleansedStringFromWarAndPeace();
         HashMap quadGramData = new HashMap();
         
@@ -383,24 +436,24 @@ public class FrequencyAnalysis {
         {
             quadGramData = (HashMap) getQuadgramDataFromWarAndPeace(warAndPeaceString);
             
-            // TESTS
-            
             //System.out.println(quadGramData.get("TION"));
             //System.out.println(warAndPeaceString);
-            /*for(int i = 0; i < 100; i++)
+            for(int i = 0; i < 100; i++)
             {
                 String testRand = generateRandom25LetterString();
                 System.out.println(testRand);
-            }*/
-            /*String testKey = generateRandom25LetterString();
+            }
+            String testKey = generateRandom25LetterString();
             String plainText = decipherPlayFairWithKey(testKey, "ZM");
             System.out.println(plainText);
             System.out.println(testKey);
-            System.out.println(modifyString(testKey));*/
+            System.out.println(modifyString(testKey));
             
             //float fitness = findFitnessOfString(quadGramData, "ATTACKTHEEASTWALLOFTHECASTLEATDAWN");
             //float fitness = findFitnessOfString(quadGramData, "FYYFHPYMJJFXYBFQQTKYMJHFXYQJFYIFBS");
             //System.out.println(fitness);
         }
+        */
+        
     }
 }
