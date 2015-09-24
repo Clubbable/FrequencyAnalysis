@@ -219,6 +219,16 @@ public class FrequencyAnalysis {
         return rand;
     }
     
+    public static String modifyString(String input)
+    {
+        int randInt1 = ThreadLocalRandom.current().nextInt(0, 26);
+        int randInt2 = ThreadLocalRandom.current().nextInt(0, 26);
+        
+        return input.replace(String.valueOf(input.charAt(randInt1)), "*")
+                    .replace(String.valueOf(input.charAt(randInt2)), String.valueOf(input.charAt(randInt1)))
+                    .replace("*", String.valueOf(input.charAt(randInt2)));
+    }
+    
     public static String decipherPlayFairWithKey( String key, String cipherText)
     {
         String plainText = "";
@@ -299,6 +309,36 @@ public class FrequencyAnalysis {
         
         return plainText;
     }
+    
+    public static float findFitnessOfString(Map quadGramData, String plainText)
+    {
+        float ans = 0.0f;
+        
+        for(int i = 0; i < plainText.length(); i++)
+        {
+            if( i+3 < plainText.length())
+            {
+                String quadGram = String.valueOf(plainText.charAt(i)) +
+                                  String.valueOf(plainText.charAt(i+1)) +
+                                  String.valueOf(plainText.charAt(i+2)) +
+                                  String.valueOf(plainText.charAt(i+3));
+                                  
+                if(quadGramData.containsKey(quadGram))
+                {
+                    Integer occurances = (Integer)quadGramData.get(quadGram);
+                    float logAns = (float) Math.log10(occurances / 2500000.0f);
+                    ans += logAns;
+                }
+                // We approxmiate no occurances with -9,4, since 1 occurance is about -6.3, just a random guess
+                else
+                {
+                    ans += -9.4f;
+                }
+            }
+        }
+        
+        return ans;
+    }
    
     public static void main(String[] args) {
         
@@ -352,8 +392,15 @@ public class FrequencyAnalysis {
                 String testRand = generateRandom25LetterString();
                 System.out.println(testRand);
             }*/
-            String plainText = decipherPlayFairWithKey("ADUGVJTXEPLWCYIMFHSOQKBNP", "ZM");
+            /*String testKey = generateRandom25LetterString();
+            String plainText = decipherPlayFairWithKey(testKey, "ZM");
             System.out.println(plainText);
+            System.out.println(testKey);
+            System.out.println(modifyString(testKey));*/
+            
+            //float fitness = findFitnessOfString(quadGramData, "ATTACKTHEEASTWALLOFTHECASTLEATDAWN");
+            //float fitness = findFitnessOfString(quadGramData, "FYYFHPYMJJFXYBFQQTKYMJHFXYQJFYIFBS");
+            //System.out.println(fitness);
         }
     }
 }
