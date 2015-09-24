@@ -554,14 +554,14 @@ public class FrequencyAnalysis {
         String studentNumber = "68DDBBBF606C158D908827C140996441";
         
         CRC32 crc2 = new CRC32();
-        crc2.update(input.getBytes());
+        crc2.update(studentNumber.getBytes());
         long studentNumberCRC = crc2.getValue();
         
         outerloop :
         {
             while(true)
             {
-                int randStringLength = ThreadLocalRandom.current().nextInt(1, 15);
+                int randStringLength = ThreadLocalRandom.current().nextInt(1, 32);
                 input = RandomStringUtils.randomAlphanumeric(randStringLength);
                 
                 System.out.println(input);
